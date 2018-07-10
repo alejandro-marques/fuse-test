@@ -2,11 +2,11 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.mycompany</groupId>
+  <groupId>org.test.fuse</groupId>
   <artifactId>camel-ose-springboot-xml</artifactId>
   <version>1.0.0-SNAPSHOT</version>
-  <name>Fabric8 :: Quickstarts :: Spring-Boot :: Camel XML</name>
-  <description>Spring Boot example running a Camel route defined in XML</description>
+  <name>Fuse :: Camel :: Spring-Boot :: Rest API</name>
+  <description>Camel REST route deployed to OpenShift on SpringBoot</description>
   <properties>
     <spring-boot.version>1.5.4.RELEASE</spring-boot.version>
     <fabric8.version>3.0.11.fuse-000039-redhat-1</fabric8.version>
@@ -28,6 +28,26 @@
   </dependencyManagement>
   <dependencies>
     <dependency>
+        <groupId>javax.inject</groupId>
+        <artifactId>javax.inject</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.camel</groupId>
+        <artifactId>camel-spring-boot-starter</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.camel</groupId>
+        <artifactId>camel-servlet-starter</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.camel</groupId>
+        <artifactId>camel-jackson-starter</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.camel</groupId>
+        <artifactId>camel-swagger-java-starter</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
@@ -38,6 +58,36 @@
     <dependency>
       <groupId>org.apache.camel</groupId>
       <artifactId>camel-spring-boot-starter</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-test</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-test</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.jboss.arquillian.junit</groupId>
+        <artifactId>arquillian-junit-container</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>fabric8-arquillian</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-http</artifactId>
+      <version>2.21.0.fuse-000077-redhat-1</version>
     </dependency>
   </dependencies>
   <repositories>
@@ -52,10 +102,6 @@
     <repository>
       <id>jboss-early-access-repository</id>
       <url>https://repository.jboss.org/nexus/content/groups/ea</url>
-    </repository>
-    <repository>
-      <id>maven-restlet</id>
-      <url>http://maven.restlet.org</url>
     </repository>
     <repository>
       <id>fuse-internal</id>
@@ -92,10 +138,6 @@
       <url>https://repository.jboss.org/nexus/content/groups/ea</url>
     </pluginRepository>
     <pluginRepository>
-      <id>maven-restlet</id>
-      <url>http://maven.restlet.org</url>
-    </pluginRepository>
-    <pluginRepository>
       <id>fuse-internal</id>
       <url>http://download.eng.brq.redhat.com/brewroot/repos/jb-fuse-6.2-build/latest/maven/</url>
     </pluginRepository>
@@ -126,6 +168,16 @@
           <source>1.8</source>
           <target>1.8</target>
         </configuration>
+      </plugin>
+      <plugin>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${maven-surefire-plugin.version}</version>
+          <inherited>true</inherited>
+          <configuration>
+              <excludes>
+                  <exclude>**/*KT.java</exclude>
+              </excludes>
+          </configuration>
       </plugin>
       <plugin>
         <groupId>org.springframework.boot</groupId>
