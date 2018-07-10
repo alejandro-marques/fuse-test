@@ -1,15 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="
-       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-       http://camel.apache.org/schema/spring       http://camel.apache.org/schema/spring/camel-spring.xsd">
+<!--
+    Licensed to the Apache Software Foundation (ASF) under one or more
+    contributor license agreements.  See the NOTICE file distributed with
+    this work for additional information regarding copyright ownership.
+    The ASF licenses this file to You under the Apache License, Version 2.0
+    (the "License"); you may not use this file except in compliance with
+    the License.  You may obtain a copy of the License at
 
-    <camelContext id="camel" xmlns="http://camel.apache.org/schema/spring">
-        <route id="simple-route">
-            <from id="route-timer" uri="timer://foo?period=1000"/>
-            <setBody id="route-setBody"><simple>Hello World from camel-context.xml</simple></setBody>
-            <log id="route-log" message=">>> ${body}"/>
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:camel="http://camel.apache.org/schema/spring"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="             http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd             http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+    <!-- a bean for health services -->
+    <bean class="org.test.fuse.service.HealthService" id="healthService" scope="singleton"/>
+    <!-- Definition for CamelHttpTransportServlet bean -->
+    <bean
+        class="org.apache.camel.component.servlet.CamelHttpTransportServlet"
+        id="camelHttpTransportServlet" scope="singleton"/>
+    <bean class="org.test.fuse.processor.ResponseProcessor"
+        id="response-processor" scope="singleton"/>
+    <!-- Definition for ServletRegistrationBean bean -->
+    <bean
+        class="org.springframework.boot.web.servlet.ServletRegistrationBean"
+        id="servletRegistrationBean" scope="singleton">
+        <constructor-arg index="0" ref="camelHttpTransportServlet"/>
+        <constructor-arg index="1" value="/composite/*"/>
+        <property name="name" value="CamelServlet"/>
+    </bean>
+    <camelContext id="myCamel" streamCache="true" xmlns="http://camel.apache.org/schema/spring">
+        <restConfiguration bindingMode="json" component="servlet" contextPath="/composite/*">
+            <dataFormatProperty key="prettyPrint" value="true"/>
+            <dataFormatProperty key="json.in.disableFeatures" value="FAIL_ON_EMPTY_BEANS"/>
+        </restConfiguration>
+        <rest id="health_route" path="/health" produces="application/json">
+            <description>Health rest service</description>
+            <get id="health_id_route" uri="/">
+                <to uri="bean:healthService?method=ping"/>
+            </get>
+        </rest>
+        <rest consumes="application/json" id="user_route" path="/user" produces="application/json">
+            <description>User rest service</description>
+            <get id="user_id_route" uri="/{id}">
+                <to uri="direct:getUserById"/>
+            </get>
+        </rest>
+        <!-- defines the rest services using the context-path /echo -->
+        <rest consumes="application/text" id="echo_route" path="/echo" produces="application/text">
+            <description>Echo rest service</description>
+            <get id="user_test_ping_route" uri="/ping">
+                <description>A ping service</description>
+                <route>
+                    <transform>
+                        <constant>pong</constant>
+                    </transform>
+                </route>
+            </get>
+        </rest>
+        <route id="get-user-info">
+            <from id="direct-get-user-by-id" uri="direct:getUserById"/>
+            <to id="rest-get-user-by-id" uri="http://people-service-test-spring.193b.starter-ca-central-1.openshiftapps.com/people/?bridgeEndpoint=true"/>
+            <to id="response-processor" uri="bean:response-processor"/>
+            <filter id="filter-null">
+                <simple>${body} == null</simple>
+                <setHeader headerName="Exchange.HTTP_RESPONSE_CODE" id="_setHeader1">
+                    <constant>404</constant>
+                </setHeader>
+            </filter>
         </route>
     </camelContext>
 </beans>
