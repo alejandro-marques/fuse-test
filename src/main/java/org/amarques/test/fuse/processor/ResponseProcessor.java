@@ -9,11 +9,12 @@ public class ResponseProcessor {
 	private static final Logger logger = LoggerFactory.getLogger(ResponseProcessor.class);
 	
 	public void process (Exchange exchange) {
-		logger.info("Processing response");
+		logger.info("Processing response...");
 		
-		System.out.println("Code: " + exchange.getProperty(Exchange.HTTP_RESPONSE_CODE));
-		System.out.println("Message: " + exchange.getIn().getBody().toString());
-		System.out.println("Class: " + exchange.getIn().getBody().getClass());
-		System.out.println("Response: " + exchange.getProperty(Exchange.HTTP_SERVLET_RESPONSE));
+		Integer code = (Integer) exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE);
+		String contentType = (String) exchange.getIn().getHeader(Exchange.CONTENT_TYPE);
+		String message = exchange.getIn().getBody(String.class);
+		
+		logger.info("Response: [Code: " + code + " / Type: " + contentType + " / Message: " + message + "]");
 	}
 }

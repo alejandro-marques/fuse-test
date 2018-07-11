@@ -19,7 +19,8 @@
     xmlns:camel="http://camel.apache.org/schema/spring"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="             http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd             http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
     <!-- a bean for health services -->
-    <bean class="org.amarques.test.fuse.service.HealthService" id="healthService" scope="singleton"/>
+    <bean class="org.amarques.test.fuse.service.HealthService"
+        id="healthService" scope="singleton"/>
     <!-- Definition for CamelHttpTransportServlet bean -->
     <bean
         class="org.apache.camel.component.servlet.CamelHttpTransportServlet"
@@ -65,14 +66,32 @@
         </rest>
         <route id="get-user-info">
             <from id="direct-get-user-by-id" uri="direct:getUserById"/>
-            <to id="rest-get-user-by-id" uri="http://people-service-fuse-tests.osapps.paradigmadigital.com/people/?bridgeEndpoint=true"/>
+            <removeHeader headerName="CamelHttpPath" id="_removePreviousPath"/>
+            <removeHeader headerName="CamelHttpQuery" id="_removePreviousParameters"/>
+            <setHeader headerName="CamelHttpUri" id="_setPeopleServiceURI">
+                <simple>http://people-service-fuse-tests.osapps.paradigmadigital.com/people/user/${header.id}</simple>
+            </setHeader>
+            <to id="_invokePeopleService" uri="http://doesnt.matter.we/override/it/anyways"/>
             <to id="response-processor" uri="bean:response-processor"/>
-            <filter id="filter-null">
-                <simple>${body} == null</simple>
-                <setHeader headerName="Exchange.HTTP_RESPONSE_CODE" id="_setHeader1">
-                    <constant>404</constant>
-                </setHeader>
-            </filter>
+            <choice id="_checkBody">
+                <when id="_when-null">
+                    <simple>${body} == null || ${body} == ''</simple>
+                    <setHeader headerName="Exchange.HTTP_RESPONSE_CODE" id="_setNotFoundCode">
+                        <constant>404</constant>
+                    </setHeader>
+                    <setHeader headerName="Content-Type" id="_setJsonContentType1">
+                        <constant>application/json</constant>
+                    </setHeader>
+                    <setBody id="_printNotFound">
+                        <simple>{"message": "not found"}</simple>
+                    </setBody>
+                </when>
+                <otherwise id="_when-not-null">
+                    <setBody id="_print message">
+                        <simple>{"result": ${body}}</simple>
+                    </setBody>
+                </otherwise>
+            </choice>
         </route>
     </camelContext>
 </beans>
