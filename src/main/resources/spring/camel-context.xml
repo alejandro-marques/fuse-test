@@ -19,12 +19,12 @@
     xmlns:camel="http://camel.apache.org/schema/spring"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="             http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd             http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
     <!-- a bean for health services -->
-    <bean class="org.test.fuse.service.HealthService" id="healthService" scope="singleton"/>
+    <bean class="org.amarques.test.fuse.service.HealthService" id="healthService" scope="singleton"/>
     <!-- Definition for CamelHttpTransportServlet bean -->
     <bean
         class="org.apache.camel.component.servlet.CamelHttpTransportServlet"
         id="camelHttpTransportServlet" scope="singleton"/>
-    <bean class="org.test.fuse.processor.ResponseProcessor"
+    <bean class="org.amarques.test.fuse.processor.ResponseProcessor"
         id="response-processor" scope="singleton"/>
     <!-- Definition for ServletRegistrationBean bean -->
     <bean
@@ -65,7 +65,7 @@
         </rest>
         <route id="get-user-info">
             <from id="direct-get-user-by-id" uri="direct:getUserById"/>
-            <to id="rest-get-user-by-id" uri="http://people-service-test-spring.193b.starter-ca-central-1.openshiftapps.com/people/?bridgeEndpoint=true"/>
+            <to id="rest-get-user-by-id" uri="http://people-service-fuse-tests.osapps.paradigmadigital.com/people/?bridgeEndpoint=true"/>
             <to id="response-processor" uri="bean:response-processor"/>
             <filter id="filter-null">
                 <simple>${body} == null</simple>
